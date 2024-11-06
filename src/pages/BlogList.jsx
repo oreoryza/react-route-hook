@@ -1,39 +1,35 @@
-import React, { Component } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
+import "bootstrap/dist/css/bootstrap.min.css";
+import "bootstrap-icons/font/bootstrap-icons.css";
 
-class BlogList extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      posts: [],
-      pagination: {},
-      page: 1,
-    };
-  }
+const BlogList = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  componentDidMount() {
-    this.fetchPosts();
-  }
+  // Get the current page from the query parameter or default to 1
+  const queryParams = new URLSearchParams(location.search);
+  const initialPage = parseInt(queryParams.get("page")) || 1;
 
-  componentDidUpdate(prevProps, prevState) {
-    if (prevState.page !== this.state.page) {
-      this.fetchPosts();
-    }
-  }
+  const [posts, setPosts] = useState([]);
+  const [pagination, setPagination] = useState({});
+  const [page, setPage] = useState(initialPage);
 
-  fetchPosts = () => {
+  useEffect(() => {
+    fetchPosts();
+  }, [page]);
+
+  const fetchPosts = () => {
     axios
-      .get(`http://localhost:3000/posts?_per_page=5&_page=${this.state.page}`)
+      .get(`http://localhost:3000/posts?_per_page=5&_page=${page}`)
       .then((response) => {
-        this.setState({
-          posts: response.data.data,
-          pagination: {
-            first: response.data.first,
-            prev: response.data.prev,
-            next: response.data.next,
-            last: response.data.last,
-          },
+        setPosts(response.data.data);
+        setPagination({
+          first: response.data.first,
+          prev: response.data.prev,
+          next: response.data.next,
+          last: response.data.last,
         });
       })
       .catch((error) => {
@@ -41,42 +37,51 @@ class BlogList extends Component {
       });
   };
 
-  handlePageChange = (page) => {
-    this.setState({ page });
+  const handlePageChange = (newPage) => {
+    setPage(newPage);
+    navigate(`?page=${newPage}`);
   };
 
-  render() {
-    const { posts, pagination } = this.state;
-
-    return (
-      <div>
-        <h1>Blog Posts</h1>
-        <ul>
-          {posts.map((post) => (
-            <li key={post.id}>
-              <h2>{post.title}</h2>
-              <p>{post.desc}</p>
-              <Link to={`/post/${post.id}`}>Read More</Link>
-            </li>
-          ))}
-        </ul>
-        <div>
-          <button
-            disabled={pagination.prev === null}
-            onClick={() => this.handlePageChange(pagination.prev)}
-          >
-            Previous
-          </button>
-          <button
-            disabled={pagination.next === null}
-            onClick={() => this.handlePageChange(pagination.next)}
-          >
-            Next
-          </button>
-        </div>
+  return (
+    <div className="container my-5">
+      <h1 className="text-center mb-4">Blog Posts</h1>
+      <section className="row">
+        {posts.map((post) => (
+          <div className="col-md-6 col-lg-4 mb-4" key={post.id}>
+            <Link to={`/post/${post.id}`} className="text-decoration-none">
+              <div className="card h-100 shadow-sm">
+                <img
+                  src="https://via.placeholder.com/150"
+                  className="card-img-top img-cstm"
+                  alt={post.title}
+                />
+                <div className="card-body">
+                  <h5 className="card-title">{post.title}</h5>
+                  <p className="card-text text-muted">{post.desc}</p>
+                </div>
+              </div>
+            </Link>
+          </div>
+        ))}
+      </section>
+      <div className="d-flex justify-content-center mt-4">
+        <button
+          className="btn btn-outline-primary me-2"
+          disabled={!pagination.prev}
+          onClick={() => handlePageChange(page - 1)}
+        >
+          <i className="bi bi-arrow-left"></i> Previous
+        </button>
+        <button
+          className="btn btn-outline-primary"
+          disabled={!pagination.next}
+          onClick={() => handlePageChange(page + 1)}
+        >
+          Next <i className="bi bi-arrow-right"></i>
+        </button>
       </div>
-    );
-  }
-}
+    </div>
+  );
+};
 
 export default BlogList;
