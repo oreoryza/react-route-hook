@@ -1,29 +1,38 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import parse from "html-react-parser";
+import { useParams, useNavigate } from "react-router-dom";
+import useFetch from "../utils/UseFetch";
 
 const BlogDetail = () => {
-  const [post, setPost] = useState({
-    id: "what-is-react",
-    title: "What is React?",
-    desc: "React is a JavaScript library for building user interfaces.",
-    content:
-      "<h2>Introduction</h2><p>React is a popular JavaScript library for building interactive UIs and complex single-page applications.</p><h3>Features</h3><ul><li>Component-based architecture</li><li>Efficient DOM updates</li><li>Flexibility and extensive ecosystem</li></ul><p>Overall, React makes it simple to build dynamic web applications.</p>",
-    img: "https://loremflickr.com/1280/720",
-  });
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const url = `http://localhost:3000/posts/${id}`;
+  const { loading, error, post } = useFetch(url);
+
+  if (loading) {
+    return <div className="d-flex justify-content-center align-items-center">
+    <div className="loader"></div>;
+  </div>;
+  }
+
+  if (error) {
+    return <p>{error}</p>;
+  }
 
   if (!post) {
-    return <p>Loading...</p>;
+    return <p>Post not found</p>;
   }
 
   return (
     <div className="container my-5">
       <button
         className="btn btn-outline-secondary mb-4"
+        onClick={() => navigate(-1)}
       >
         <i className="bi bi-arrow-left"></i> Back
       </button>
       <div className="card shadow-sm p-4">
-        <img src={post.image} alt="Blog image" className="card-img-top" />
+        <img src={post.img} alt="Blog image" className="card-img-top" />
         <h1 className="card-title text-center">{post.title}</h1>
         <p className="card-text text-muted text-center">{post.desc}</p>
         <hr />
