@@ -1,8 +1,4 @@
-import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import axios from "axios";
-import "bootstrap/dist/css/bootstrap.min.css";
-import "bootstrap-icons/font/bootstrap-icons.css";
 
 const BlogList = () => {
   const navigate = useNavigate();
@@ -12,35 +8,17 @@ const BlogList = () => {
   const queryParams = new URLSearchParams(location.search);
   const initialPage = parseInt(queryParams.get("page")) || 1;
 
-  const [posts, setPosts] = useState([]);
-  const [pagination, setPagination] = useState({});
-  const [page, setPage] = useState(initialPage);
-
-  useEffect(() => {
-    fetchPosts();
-  }, [page]);
-
-  const fetchPosts = () => {
-    axios
-      .get(`http://localhost:3000/posts?_per_page=5&_page=${page}`)
-      .then((response) => {
-        setPosts(response.data.data);
-        setPagination({
-          first: response.data.first,
-          prev: response.data.prev,
-          next: response.data.next,
-          last: response.data.last,
-        });
-      })
-      .catch((error) => {
-        console.error("Error fetching posts:", error);
-      });
-  };
-
-  const handlePageChange = (newPage) => {
-    setPage(newPage);
-    navigate(`?page=${newPage}`);
-  };
+  // Get the posts from the JSON server
+  const [posts, setPosts] = useState([
+    {
+      id: "what-is-react",
+      title: "What is React?",
+      desc: "React is a JavaScript library for building user interfaces.",
+      content:
+        "<h2>Introduction</h2><p>React is a popular JavaScript library for building interactive UIs and complex single-page applications.</p><h3>Features</h3><ul><li>Component-based architecture</li><li>Efficient DOM updates</li><li>Flexibility and extensive ecosystem</li></ul><p>Overall, React makes it simple to build dynamic web applications.</p>",
+      img: "https://loremflickr.com/1280/720",
+    },
+  ]);
 
   return (
     <div className="container my-5">
@@ -51,7 +29,7 @@ const BlogList = () => {
             <Link to={`/post/${post.id}`} className="text-decoration-none">
               <div className="card h-100 shadow-sm">
                 <img
-                  src="https://via.placeholder.com/150"
+                  src={post.image}
                   className="card-img-top img-cstm"
                   alt={post.title}
                 />
@@ -67,15 +45,11 @@ const BlogList = () => {
       <div className="d-flex justify-content-center mt-4">
         <button
           className="btn btn-outline-primary me-2"
-          disabled={!pagination.prev}
-          onClick={() => handlePageChange(page - 1)}
         >
           <i className="bi bi-arrow-left"></i> Previous
         </button>
         <button
           className="btn btn-outline-primary"
-          disabled={!pagination.next}
-          onClick={() => handlePageChange(page + 1)}
         >
           Next <i className="bi bi-arrow-right"></i>
         </button>
